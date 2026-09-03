@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, doc, increment, onSnapshot, orderBy, query, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Rug } from "@/types/rug";
 
@@ -137,6 +137,15 @@ function RugDeck({ rugs, loading, error }: { rugs: Rug[]; loading: boolean; erro
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [pointerStart, setPointerStart] = useState<number | null>(null);
 
+  useEffect(() => {
+    try {
+      const storedLikes = JSON.parse(window.localStorage.getItem("okoligan-liked-rugs") || "[]") as string[];
+      setLikedIds(new Set(storedLikes));
+    } catch {
+      setLikedIds(new Set());
+    }
+  }, []);
+
   const currentRug = rugs[currentIndex];
   const liked = currentRug ? likedIds.has(currentRug.id) : false;
 
@@ -153,10 +162,13 @@ function RugDeck({ rugs, loading, error }: { rugs: Rug[]; loading: boolean; erro
 
   function toggleLike() {
     if (!currentRug) return;
+    const hasLiked = likedIds.has(currentRug.id);
+    updateDoc(doc(db, "rugs", currentRug.id), { likes: increment(hasLiked ? -1 : 1) }).catch(error => console.error("Unable to update rug likes:", error));
     setLikedIds(previous => {
       const next = new Set(previous);
-      if (next.has(currentRug.id)) next.delete(currentRug.id);
+      if (hasLiked) next.delete(currentRug.id);
       else next.add(currentRug.id);
+      window.localStorage.setItem("okoligan-liked-rugs", JSON.stringify([...next]));
       return next;
     });
   }

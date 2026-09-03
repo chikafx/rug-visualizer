@@ -9,5 +9,6 @@ export type Rug = {
   imageUrl: string;
   available: boolean;
   featured?: boolean;
+  likes?: number;
   createdAt?: unknown;
 };

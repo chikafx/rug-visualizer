@@ -18,7 +18,7 @@ export default function AdminPage() {
   useEffect(() => {
     const q = query(collection(db, "rugs"), orderBy("createdAt", "desc"));
     return onSnapshot(q, snapshot => {
-      setRugs(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as Rug)));
+      setRugs(snapshot.docs.map(item => ({ id: item.id, ...item.data() } as Rug)).sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0)));
     }, error => setMessage(`Firebase error: ${error.message}`));
   }, []);
 
@@ -82,7 +82,7 @@ export default function AdminPage() {
         </form>
 
         <section><div className="mb-4 flex items-end justify-between"><div><h2 className="text-xl font-semibold">Inventory</h2><p className="text-sm text-stone-500">Live from Firestore.</p></div></div>
-          {rugs.length === 0 ? <div className="rounded-4xl border border-dashed border-stone-300 bg-white p-12 text-center"><p className="font-medium">No rugs yet.</p><p className="mt-2 text-sm text-stone-500">Add the first product using the form.</p></div> : <div className="grid gap-4 sm:grid-cols-2">{rugs.map(rug => <article key={rug.id} className="overflow-hidden rounded-3xl bg-white shadow-sm"><img src={rug.imageUrl} alt={rug.name} className="h-52 w-full object-cover"/><div className="p-5"><div className="flex justify-between gap-4"><div><h3 className="font-semibold">{rug.name}</h3><p className="mt-1 text-xs text-stone-500">{rug.sku} · {rug.colour}</p></div><button onClick={() => removeRug(rug.id)} className="text-xs text-red-700">Remove</button></div><p className="mt-4 font-semibold">₦{rug.price.toLocaleString()}</p><p className="mt-1 text-xs text-stone-500">{rug.sizes.join(" · ")}</p></div></article>)}</div>}
+          {rugs.length === 0 ? <div className="rounded-4xl border border-dashed border-stone-300 bg-white p-12 text-center"><p className="font-medium">No rugs yet.</p><p className="mt-2 text-sm text-stone-500">Add the first product using the form.</p></div> : <div className="grid gap-4 sm:grid-cols-2">{rugs.map((rug, index) => <article key={rug.id} className="overflow-hidden rounded-3xl bg-white shadow-sm"><img src={rug.imageUrl} alt={rug.name} className="h-52 w-full object-cover"/><div className="p-5"><div className="flex justify-between gap-4"><div><div className="flex items-center gap-2"><h3 className="font-semibold">{rug.name}</h3>{index === 0 && (rug.likes ?? 0) > 0 && <span className="text-xs text-emerald-700">Most loved</span>}</div><p className="mt-1 text-xs text-stone-500">{rug.sku} · {rug.colour}</p></div><button onClick={() => removeRug(rug.id)} className="text-xs text-red-700">Remove</button></div><div className="mt-4 flex items-center justify-between"><p className="font-semibold">₦{rug.price.toLocaleString()}</p><p className="text-sm font-medium text-rose-600">♥ {rug.likes ?? 0} likes</p></div><p className="mt-1 text-xs text-stone-500">{rug.sizes.join(" · ")}</p></div></article>)}</div>}
         </section>
       </div>
     </div>
