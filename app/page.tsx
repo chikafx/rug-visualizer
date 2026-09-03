@@ -142,7 +142,10 @@ function RugDeck({ rugs, loading, error }: { rugs: Rug[]; loading: boolean; erro
 
   function move(direction: number) {
     if (!rugs.length) return;
-    setCurrentIndex(index => (index + direction + rugs.length) % rugs.length);
+    const updateRug = () => setCurrentIndex(index => (index + direction + rugs.length) % rugs.length);
+    const viewTransitionDocument = document as Document & { startViewTransition?: (callback: () => void) => void };
+    if (viewTransitionDocument.startViewTransition) viewTransitionDocument.startViewTransition(updateRug);
+    else updateRug();
   }
 
   function toggleLike() {
