@@ -195,6 +195,14 @@ function Results({ shade, roomLength, roomWidth, roomArea, budget, selectedRug, 
   const rugArea = selectedSize ? selectedSize.width * selectedSize.length : 0;
   const coverage = roomArea ? Math.round((rugArea / roomArea) * 100) : 0;
   const fitColor = fit?.tone === "green" ? "#16845b" : fit?.tone === "amber" ? "#b27a18" : "#b44b3b";
+  useEffect(() => {
+    const rugSample = document.querySelector<HTMLElement>('[class*="bg-[#5e916f]"]');
+    if (!rugSample || !selectedRug?.imageUrl) return;
+    rugSample.style.backgroundImage = `url("${selectedRug.imageUrl}")`;
+    rugSample.style.backgroundSize = "cover";
+    rugSample.style.backgroundPosition = "center";
+    rugSample.style.color = "transparent";
+  }, [selectedRug]);
   function chooseMatch(rug: Rug) {
     setSelectedRugId(rug.id);
     const params = new URLSearchParams({ name: rug.name, image: rug.imageUrl, price: String(rug.price), size: selectedSize?.label ?? rug.sizes[0] ?? "", room: `${roomLength} x ${roomWidth} ft`, mood: shade.name });
