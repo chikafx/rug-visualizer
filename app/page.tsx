@@ -73,7 +73,7 @@ export default function Home() {
   }, []);
 
   const result = step === 4;
-  const shade = shadeCopy[answers.atmosphere?.value ?? "calm"];
+  const shade = shadeCopy[answers.atmosphere?.value ?? "calm"] ?? shadeCopy.calm;
   const roomArea = Number(roomLength) * Number(roomWidth);
   const selectedRug = rugs.find(rug => rug.id === selectedRugId) ?? rugs[0];
   const sizes = useMemo(() => {
@@ -122,6 +122,7 @@ export default function Home() {
       </div>
       <div className="absolute bottom-8 flex flex-col items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#172019]/40"><span>Explore</span><span className="text-lg">↓</span></div>
     </section>
+    <RugDeck rugs={rugs} loading={loading} error={error} />
     <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-6 sm:py-6 lg:px-10"><Link href="/" className="shrink-0 font-sans text-xl font-semibold tracking-tighter">OKO<span className="text-[#0d8a63]">LIGAN</span></Link><div className="hidden items-center gap-8 font-sans text-sm md:flex"><a href="#collection" className="hover:text-[#0d8a63]">RugRoom Match</a><Link href="/visualize" className="hover:text-[#0d8a63]">Visualize a rug</Link><Link href="/admin" className="hover:text-[#0d8a63]">Admin</Link></div><span className="hidden text-right font-sans text-[10px] uppercase tracking-[0.15em] text-[#6c7d70] sm:inline sm:max-w-44">Rug discovery, measured</span></nav>
     <section className="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:px-6 sm:pt-12 lg:px-10 lg:pb-24 lg:pt-20"><div className="grid items-end gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-12"><div><p className="font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[#0d8a63] sm:tracking-[0.3em]">RugRoom Match™</p><h1 className="mt-5 max-w-3xl font-serif text-5xl leading-[.95] tracking-tighter sm:mt-6 sm:text-7xl lg:text-[7.5rem]">The right rug is a <em className="font-normal text-[#0d8a63]">feeling</em> that fits.</h1><p className="mt-6 max-w-lg font-sans text-base leading-7 text-[#607166] sm:mt-8 sm:text-lg sm:leading-8">Tell us about your room, your mood and your budget. We will show you what actually works, down to the square foot.</p></div><div className="relative min-h-64 overflow-hidden rounded-4xl bg-[#0b513f] p-6 text-[#eff4e8] sm:min-h-88 sm:p-8"><div className="leaf-pattern absolute inset-0 opacity-30" /><div className="relative flex h-full min-h-52 flex-col justify-between"><span className="font-sans text-xs uppercase tracking-[0.2em] text-[#b8d6b6]">No guesswork required</span><div><p className="font-serif text-4xl leading-none sm:text-5xl">Good design<br /><em className="font-normal text-[#a7d6ab]">has dimensions.</em></p><p className="mt-4 max-w-xs font-sans text-sm leading-6 text-[#c8ded0] sm:mt-5">A quick reality check for the rug you are about to fall for.</p></div></div></div></div></section>
     <section id="collection" className="border-y border-[#d9ded3] bg-[#e8eee4] px-5 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-24"><div className="mx-auto min-w-0 max-w-6xl">
@@ -129,6 +130,39 @@ export default function Home() {
     </div></section>
     <footer className="bg-[#183126] px-6 py-10 text-[#eff4e8] lg:px-10"><div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><p className="font-sans font-semibold">OKO<span className="text-[#a7d6ab]">LIGAN</span></p><p className="font-sans text-sm text-[#a7b9ac]">Measure twice. Love your rug once.</p></div></footer>
   </main>;
+}
+
+function RugDeck({ rugs, loading, error }: { rugs: Rug[]; loading: boolean; error: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [pointerStart, setPointerStart] = useState<number | null>(null);
+
+  const currentRug = rugs[currentIndex];
+  const liked = currentRug ? likedIds.has(currentRug.id) : false;
+
+  function move(direction: number) {
+    if (!rugs.length) return;
+    setCurrentIndex(index => (index + direction + rugs.length) % rugs.length);
+  }
+
+  function toggleLike() {
+    if (!currentRug) return;
+    setLikedIds(previous => {
+      const next = new Set(previous);
+      if (next.has(currentRug.id)) next.delete(currentRug.id);
+      else next.add(currentRug.id);
+      return next;
+    });
+  }
+
+  function finishSwipe(clientX: number) {
+    if (pointerStart === null) return;
+    const distance = clientX - pointerStart;
+    if (Math.abs(distance) > 50) move(distance < 0 ? 1 : -1);
+    setPointerStart(null);
+  }
+
+  return <section id="available-rugs" className="border-y border-[#d9ded3] bg-[#f3f0e8] px-5 py-14 sm:px-6 sm:py-20 lg:px-10"><div className="mx-auto max-w-5xl"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[#0d8a63]">Available rugs</p><h2 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Find one worth falling for.</h2></div><p className="max-w-xs font-sans text-sm leading-6 text-[#718077]">Swipe through the collection. Tap the heart when a rug feels like yours.</p></div>{loading ? <p className="mt-10 font-sans text-sm text-[#718077]">Loading available rugs...</p> : error ? <p className="mt-10 bg-red-50 p-4 font-sans text-sm text-red-700">{error}</p> : !currentRug ? <p className="mt-10 border border-dashed border-[#b9cbbb] bg-white p-8 font-sans text-sm text-[#718077]">Available rugs will appear here as the collection is added.</p> : <div className="mx-auto mt-10 max-w-xl"><div className="relative touch-pan-y select-none overflow-hidden bg-[#d8e1d5] shadow-[0_20px_45px_rgba(24,49,38,.14)]" onPointerDown={event => setPointerStart(event.clientX)} onPointerUp={event => finishSwipe(event.clientX)} onPointerCancel={() => setPointerStart(null)}><div className="aspect-4/5 sm:aspect-5/6"><img src={currentRug.imageUrl} alt={currentRug.name} draggable="false" className="h-full w-full object-cover" /></div><div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-[#0c241b]/90 via-[#0c241b]/50 to-transparent px-6 pb-6 pt-24 text-white sm:px-8"><div className="flex items-end justify-between gap-4"><div><p className="font-sans text-xs uppercase tracking-[0.2em] text-[#b8d6b6]">{currentIndex + 1} / {rugs.length}</p><h3 className="mt-2 font-serif text-4xl">{currentRug.name}</h3><p className="mt-1 font-sans text-sm text-white/75">{currentRug.colour} · {currentRug.sizes[0] ?? "Available sizes"}</p></div><button type="button" aria-label={liked ? `Remove ${currentRug.name} from loved rugs` : `Love ${currentRug.name}`} onClick={toggleLike} className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-2xl transition ${liked ? "border-[#ffb7aa] bg-[#f66f5e] text-white" : "border-white/50 bg-black/20 text-white hover:bg-white/20"}`}>{liked ? "♥" : "♡"}</button></div></div></div><div className="mt-5 flex items-center justify-between gap-4"><button type="button" aria-label="Previous rug" onClick={() => move(-1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-[#b9cbbb] bg-[#f5f6ef] text-xl transition hover:border-[#0d8a63] hover:text-[#0d8a63]">←</button><p className="text-center font-sans text-xs uppercase tracking-[0.18em] text-[#718077]">Swipe to explore <span className="mx-1 text-[#0d8a63]">·</span> {likedIds.size} loved</p><button type="button" aria-label="Next rug" onClick={() => move(1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-[#b9cbbb] bg-[#f5f6ef] text-xl transition hover:border-[#0d8a63] hover:text-[#0d8a63]">→</button></div><Link href="/visualize" className="mt-5 block text-center font-sans text-sm font-semibold text-[#0d8a63] underline underline-offset-4">Visualize this rug in your space ↗</Link></div>}</div></section>;
 }
 
 function Journey({ step, roomLength, roomWidth, budget, setRoomLength, setRoomWidth, setBudget, choose, showResults }: { step: number; roomLength: string; roomWidth: string; budget: string; setRoomLength: (value: string) => void; setRoomWidth: (value: string) => void; setBudget: (value: string) => void; choose: (choice: Choice) => void; showResults: (event: React.FormEvent) => void }) {
