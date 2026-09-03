@@ -10,6 +10,5 @@ button, a { cursor: pointer; }
 .font-serif { font-family: "Iowan Old Style", "Baskerville", "Times New Roman", serif; }
 .leaf-pattern { background-image: repeating-linear-gradient(125deg, transparent 0 28px, rgba(210, 239, 204, .2) 29px 30px, transparent 31px 58px); }
 .touch-pan-y img { animation: rug-swap-in 320ms cubic-bezier(.22, .61, .36, 1); }
-.touch-pan-y img { view-transition-name: rug-image; }
 @keyframes rug-swap-in { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .touch-pan-y img { animation: none; } }

@@ -140,12 +140,15 @@ function RugDeck({ rugs, loading, error }: { rugs: Rug[]; loading: boolean; erro
   const currentRug = rugs[currentIndex];
   const liked = currentRug ? likedIds.has(currentRug.id) : false;
 
+  useEffect(() => {
+    if (rugs.length < 2 || pointerStart !== null) return;
+    const slideshow = window.setInterval(() => move(1), 4500);
+    return () => window.clearInterval(slideshow);
+  }, [rugs.length, pointerStart]);
+
   function move(direction: number) {
     if (!rugs.length) return;
-    const updateRug = () => setCurrentIndex(index => (index + direction + rugs.length) % rugs.length);
-    const viewTransitionDocument = document as Document & { startViewTransition?: (callback: () => void) => void };
-    if (viewTransitionDocument.startViewTransition) viewTransitionDocument.startViewTransition(updateRug);
-    else updateRug();
+    setCurrentIndex(index => (index + direction + rugs.length) % rugs.length);
   }
 
   function toggleLike() {
@@ -180,6 +183,22 @@ function Results({ shade, roomLength, roomWidth, roomArea, budget, selectedRug, 
   const rugArea = selectedSize ? selectedSize.width * selectedSize.length : 0;
   const coverage = roomArea ? Math.round((rugArea / roomArea) * 100) : 0;
   const fitColor = fit?.tone === "green" ? "#16845b" : fit?.tone === "amber" ? "#b27a18" : "#b44b3b";
+  function chooseMatch(rug: Rug) {
+    setSelectedRugId(rug.id);
+    const params = new URLSearchParams({ name: rug.name, image: rug.imageUrl, price: String(rug.price), size: selectedSize?.label ?? rug.sizes[0] ?? "", room: `${roomLength} x ${roomWidth} ft`, mood: shade.name });
+    window.location.href = `/order?${params.toString()}`;
+  }
+  useEffect(() => {
+    function handleMatchClick(event: MouseEvent) {
+      const button = (event.target as HTMLElement).closest("button");
+      const matchGrid = button?.closest(".mt-8.grid.gap-4");
+      const image = button?.querySelector("img");
+      const rug = image ? matches.find(item => item.rug.imageUrl === image.getAttribute("src"))?.rug : undefined;
+      if (matchGrid && rug) chooseMatch(rug);
+    }
+    document.addEventListener("click", handleMatchClick);
+    return () => document.removeEventListener("click", handleMatchClick);
+  }, [matches, selectedSize, roomLength, roomWidth, shade]);
   return <div><div className="flex flex-wrap items-start justify-between gap-6 sm:gap-8"><div><p className="font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[#0d8a63] sm:tracking-[0.3em]">Your RugRoom Match™</p><h2 className="mt-5 font-serif text-5xl leading-none tracking-tighter sm:text-8xl">We found your<br /><em className="font-normal text-[#0d8a63]">perfect rugs.</em></h2><p className="mt-5 max-w-xl font-sans text-base leading-7 text-[#607166] sm:mt-6 sm:text-lg sm:leading-8">Your ideal green tone is <strong className="text-[#183126]">{shade.name}</strong>. {shade.description}</p></div><div className="h-20 w-20 shrink-0 rounded-full border-8 border-[#f5f6ef] shadow-[0_0_0_1px_#cbd8cb] sm:h-28 sm:w-28 sm:border-12" style={{ backgroundColor: shade.color }} /></div>
     <div className="mt-12 grid gap-4 sm:mt-14 sm:gap-5 lg:grid-cols-[1.1fr_.9fr]"><div className="min-w-0 border border-[#cbd8cb] bg-[#f5f6ef] p-5 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[#0d8a63]">Size reality checker</p><h3 className="mt-3 font-serif text-3xl sm:text-4xl">Your room, to scale</h3><p className="mt-2 font-sans text-sm text-[#718077]">{roomLength} x {roomWidth} ft room · {coverage}% floor coverage</p></div><div className="flex w-full flex-wrap gap-2 font-sans text-xs sm:w-auto"><select value={selectedRugId} onChange={event => setSelectedRugId(event.target.value)} className="min-w-0 flex-1 border border-[#cbd8cb] bg-white px-2 py-2 outline-none sm:max-w-36">{matches.map(({ rug }) => <option key={rug.id} value={rug.id}>{rug.name}</option>)}</select><select value={selectedSize?.label} onChange={event => setSelectedSizeLabel(event.target.value)} className="min-w-0 flex-1 border border-[#cbd8cb] bg-white px-2 py-2 outline-none sm:flex-none">{sizes.map(size => <option key={size.label}>{size.label}</option>)}</select></div></div><div className="mt-6 flex min-h-60 items-center justify-center overflow-hidden bg-[#dce6d7] p-4 sm:mt-8 sm:min-h-72 sm:p-7"><div className="relative flex max-h-56 w-full max-w-lg items-center justify-center border-2 border-[#8da992] bg-[#edf1e8]" style={{ aspectRatio: `${Number(roomLength) / Number(roomWidth)}` }}><span className="absolute left-2 top-2 font-sans text-xs text-[#718077]">{roomLength} ft</span><div className="flex items-center justify-center border-2 border-[#0d8a63] bg-[#5e916f] text-center font-sans text-xs font-semibold text-white shadow-lg" style={{ width: `${Math.min(88, (selectedSize?.width ?? 0) / Number(roomWidth) * 100)}%`, height: `${Math.min(88, (selectedSize?.length ?? 0) / Number(roomLength) * 100)}%` }}>{selectedSize?.label}<br />YOUR RUG</div><span className="absolute bottom-2 left-1/2 -translate-x-1/2 font-sans text-xs text-[#718077]">{roomWidth} ft</span></div></div><div className="mt-5 flex items-start gap-3 font-sans"><span className="mt-1 h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: fitColor }} /><div><strong style={{ color: fitColor }}>{fit?.label}</strong><p className="mt-1 text-sm text-[#607166]">{fit?.message}</p></div></div></div>
       <div className="bg-[#183126] p-6 text-[#eff4e8] sm:p-8"><p className="font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[#a7d6ab]">Best overall match</p><h3 className="mt-3 font-serif text-4xl">{selectedRug?.name ?? "Your next favourite"}</h3><div className="mt-8 space-y-4 border-t border-white/20 pt-6 font-sans text-sm"><Score label="Style match" value={matches[0]?.style ?? 92} /><Score label="Size match" value={fit?.tone === "green" ? 95 : fit?.tone === "amber" ? 72 : 38} /><Score label="Budget match" value={selectedRug && Number(budget) >= selectedRug.price ? 90 : 62} /></div><div className="mt-8 border-t border-white/20 pt-5"><p className="font-sans text-xs uppercase tracking-[0.2em] text-[#a7d6ab]">Overall match</p><p className="mt-1 font-serif text-5xl">{Math.round(((matches[0]?.style ?? 92) + (fit?.tone === "green" ? 95 : 72) + (selectedRug && Number(budget) >= selectedRug.price ? 90 : 62)) / 3)}%</p></div>{selectedRug && <p className="mt-6 font-sans text-sm text-[#c8ded0]">₦{selectedRug.price.toLocaleString()} · {selectedRug.sizes.join(" · ")}</p>}</div></div>
