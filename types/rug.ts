@@ -8,5 +8,6 @@ export type Rug = {
   sizes: string[];
   imageUrl: string;
   available: boolean;
+  featured?: boolean;
   createdAt?: unknown;
 };
