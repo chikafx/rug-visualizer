@@ -9,6 +9,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 button, a { cursor: pointer; }
 .font-serif { font-family: "Iowan Old Style", "Baskerville", "Times New Roman", serif; }
 .leaf-pattern { background-image: repeating-linear-gradient(125deg, transparent 0 28px, rgba(210, 239, 204, .2) 29px 30px, transparent 31px 58px); }
+.size-checker-room { perspective: 900px; transform-style: preserve-3d; background: linear-gradient(155deg, #f0f2e9 0%, #d6e2d4 100%) !important; box-shadow: inset 0 18px 35px rgba(24, 49, 38, .08); }
 .touch-pan-y img { animation: rug-fade-cycle 4500ms cubic-bezier(.22, .61, .36, 1); }
 @keyframes rug-fade-cycle { 0% { opacity: 0; transform: scale(.985); } 12% { opacity: 1; transform: scale(1); } 82% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.01); } }
 @media (prefers-reduced-motion: reduce) { .touch-pan-y img { animation: none; } }
