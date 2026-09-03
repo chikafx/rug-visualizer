@@ -3,10 +3,6 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
-
 async function imageUrlToBase64(url: string) {
   const response = await fetch(url);
 
@@ -37,6 +33,10 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
 
     const formData = await request.formData();
 
