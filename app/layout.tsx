@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RugRoom — Find Your Green",
-  description: "Discover the green rug that fits your space, mood and lifestyle.",
+  title: "Okoligan Rugs — Find Your Green",
+  description: "Discover the Okoligan rug that fits your space, mood and lifestyle.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
